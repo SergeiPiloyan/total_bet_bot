@@ -23,35 +23,61 @@ export class UserService {
 
     async createUser(dto: CreateUserDTO) {
         const newUser = this.userRepository.create(dto);
-        console.log(newUser);
+        console.log(newUser.bet_card);
+
         const betCard = this.betCardRepository.create({
-            userId: newUser.uid
+            userId: newUser.uid,
         });
-        await this.betCardRepository.save(betCard);
+
+        this.betCardRepository.save(betCard);
         newUser.bet_card = betCard;
-        await this.userRepository.save(newUser)
+
+        this.userRepository.save(newUser)
         return newUser
     }
 
-    async add(dto: CreateBetItemDTO) {
-        const item = this.betItemRepository.create(dto);
-        await this.betItemRepository.save(item);
-        return item;
+
+
+
+
+
+    async addMatchId(id: string, payload: { mId: number, cf: number, t: 'P1' | 'X' | 'P2' }) {
+        const user = await this.getUser(id)
+        // console.log(user, id);
+        return this.createBetItem({ bet_card_id: String(user.bet_card), matchId: String(payload.mId) })
     }
 
-    async addMatchId(id: string, payload: { matchId: number, coef: number, type: 'P1' | 'X' | 'P2' }) {
-        const user = await this.getUser(id)
-        const betItem = this.betItemRepository.create({ matchId: String(payload.matchId), bet_card_id: String(user.bet_card.id) })
-        await this.betItemRepository.save(betItem)
+
+
+    async createBetItem(dto: CreateBetItemDTO): Promise<BetItem> {
+        try {
+            const item = await this.betItemRepository.create(dto);
+            // console.log('item', item);
+            const f = await this.betItemRepository.save(item);
+            return f
+        } catch (error) {
+            console.log('ошибка');
+        }
     }
+
+
+
+
+
 
     async getUser(uid: string) {
         return await this.userRepository.findOne({ where: { uid } });
     }
 
     async updatePhoneNumber({ id, phone }: { id: string, phone: string }) {
-        console.log(id, phone);
         const user = await this.getUser(id)
         return await this.userRepository.update({ id: user.id }, { phone })
     }
 }
+
+
+
+    // async addBetItem(dto: CreateBetItemDTO) {
+    //     const item = this.betItemRepository.create(dto);
+    //     await this.betItemRepository.save(item);
+    // }

@@ -17,6 +17,6 @@ export class UserController {
     @Get(':telegramId')
     async getUser(@Param('telegramId') telegramId: number) {
         const findUser = await this.userService.getUser(String(telegramId));
-        console.log(findUser);
+        // console.log(findUser);
     }
 }

@@ -3,6 +3,14 @@ import { UserService } from "../user/user.service";
 import { Markup } from "telegraf";
 import { Context } from "vm";
 
+type TCallbackData = {
+    c: string,
+    p: {
+        mId: number,
+        cf: number,
+        t: 'P1' | 'X' | 'P2',
+    },
+}
 
 type TGame = {
     id: number,
@@ -23,6 +31,44 @@ export const games: TGame[] = [
     { id: 6, sport: 'football', lige: 'ARMENIA: Premier League', names: 'Ararat - Urartu', coef1: 1.8, coef2: 2.5, coefX: 3.23, },
 ]
 
+const coefButtons = (game: TGame) => {
+
+    const callbackDataP1: TCallbackData = {
+        c: '/addToBetItem',
+        p: {
+            mId: game.id,
+            cf: game.coef1,
+            t: 'P1'
+        },
+    }
+
+    const callbackDataX: TCallbackData = {
+        c: '/addToBetItem',
+        p: {
+            mId: game.id,
+            cf: game.coefX,
+            t: 'X',
+        },
+    }
+
+    const callbackDataP2: TCallbackData = {
+        c: '/addToBetItem',
+        p: {
+            mId: game.id,
+            cf: game.coef2,
+            t: 'P2',
+        },
+    }
+    return Markup.inlineKeyboard(
+        [
+            Markup.button.callback(`P1: ${game.coef1}`, JSON.stringify(callbackDataP1)),
+            Markup.button.callback(`X: ${game.coefX}`, JSON.stringify(callbackDataX)),
+            Markup.button.callback(`P2: ${game.coef2}`, JSON.stringify(callbackDataP2))
+        ],
+    )
+}
+
+
 
 
 
@@ -32,52 +78,20 @@ export class BotService {
         private userService: UserService
     ) { }
 
-    async getUser(telegramId: number) {
+    async getUser(telegramId) {
         return this.userService.getUser(String(telegramId))
+
     }
 
     async showGames(ctx: Context) {
-        const coefButtons = (game: TGame) => {
-            return Markup.inlineKeyboard(
-                [
-                    {
-                        text: `P1: ${game.coef1}`,
-                        callback_data: JSON.stringify({
-                            command: '/addToBetItem',
-                            payload: {
-                                matchId: game.id,
-                                coef: game.coef1,
-                                type: 'P1',
-                            },
-                        }),
-                    },
-                    {
-                        text: `X: ${game.coefX}`,
-                        callback_data: JSON.stringify({
-                            command: '/addToBetItem',
-                            payload: {
-                                matchId: game.id,
-                                coef: game.coefX,
-                                type: 'X',
-                            },
-                        }),
-                    },
-                    {
-                        text: `P2: ${game.coef2}`,
-                        callback_data: JSON.stringify({
-                            command: '/addToBetItem',
-                            payload: {
-                                matchId: game.id,
-                                coef: game.coef2,
-                                type: 'P2',
-                            },
-                        }),
-                    },
-                ],
-            )
+        console.log('je suis ici');
+        try {
+            return games.map((g) => ctx.reply(`${g.id}. ${g.names} \n\n`, coefButtons(g)));
+        } catch (e) {
+            return console.log('error', e);
         }
-        return await games.map((g) => ctx.reply(`${g.id}. ${g.names} \n\n`, coefButtons(g)))
     }
+
 
     async choiseGame(gameId): Promise<string> {
         if (typeof gameId === 'number') {
@@ -85,10 +99,42 @@ export class BotService {
         }
         return await 'Укажите корректный номер матча'
     }
-
-
 }
 
+
+// 
+//     text: `P1: ${game.coef1}`,
+//     callback_data: JSON.stringify({
+//         command: '/addToBetItem',
+//         payload: {
+//             matchId: game.id,
+//             coef: game.coef1,
+//             type: 'P1',
+//         },
+//     }),
+// },
+// {
+//     text: `X: ${game.coefX}`,
+//     callback_data: JSON.stringify({
+//         command: '/addToBetItem',
+//         payload: {
+//             matchId: game.id,
+//             coef: game.coefX,
+//             type: 'X',
+//         },
+//     }),
+// },
+// {
+//     text: `P2: ${game.coef2}`,
+//     callback_data: JSON.stringify({
+//         command: '/addToBetItem',
+//         payload: {
+//             matchId: game.id,
+//             coef: game.coef2,
+//             type: 'P2',
+//         },
+//     }),
+// 
 
 // type TExtMatch = TMatch & {
 //     Ext: TMatch[]

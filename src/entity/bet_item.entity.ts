@@ -6,7 +6,7 @@ export class BetItem {
     @PrimaryGeneratedColumn()
     public id: number;
 
-    @Column()
+    @Column({ nullable: true })
     public matchId: string
 
     @ManyToOne(() => BetCardEntity, (bet_card) => bet_card.id,)
